@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Timer Compartilhado</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #fdfdfd;
+      color: #111;
+      text-align: center;
+      padding: 50px;
+    }
+    .timer {
+      font-size: 64px;
+      font-weight: bold;
+      margin: 30px 0;
+    }
+    button {
+      font-size: 20px;
+      padding: 12px 24px;
+      margin: 10px;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: #fff;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #444;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Contagem Regressiva de 1 Hora</h1>
+  <div class="timer" id="timer">01:00:00</div>
+  <button onclick="startTimer()">Iniciar</button>
+  <button onclick="stopTimer()">Parar</button>
+
+  <script>
+    let duration = 60 * 60; // 1 hora em segundos
+    let remaining = duration;
+    let interval = null;
+
+    function format(seconds) {
+      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+      const s = String(seconds % 60).padStart(2, '0');
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateDisplay() {
+      document.getElementById("timer").textContent = format(remaining);
+    }
+
+    function startTimer() {
+      if (interval) return;
+      interval = setInterval(() => {
+        remaining--;
+        updateDisplay();
+        if (remaining <= 0) {
+          clearInterval(interval);
+          interval = null;
+          alert("Tempo esgotado!");
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(interval);
+      interval = null;
+      remaining = duration;
+      updateDisplay();
+    }
+
+    updateDisplay();
+  </script>
+
+</body>
+</html>
+
