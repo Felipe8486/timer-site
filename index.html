@@ -6,129 +6,101 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f8f9fa;
-      --fg: #222;
-      --accent: #007acc;
-      --btn-bg: #222;
-      --btn-fg: #fff;
-      --btn-hover: #444;
+      --bg:#f8f9fa; --fg:#222; --btn:#222; --btnHover:#444;
     }
-
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--fg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: 2rem;
-      font-weight: 600;
-      margin-bottom: 30px;
-    }
-
-    .timer {
-      font-size: 5rem;
-      font-weight: 600;
-      margin-bottom: 40px;
-      letter-spacing: 2px;
-    }
-
-    .buttons {
-      display: flex;
-      gap: 20px;
-    }
-
-    button {
-      font-size: 1.1rem;
-      padding: 12px 28px;
-      border: none;
-      border-radius: 8px;
-      background-color: var(--btn-bg);
-      color: var(--btn-fg);
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-
-    button:hover {
-      background-color: var(--btn-hover);
-    }
-
-    @media (max-width: 500px) {
-      .timer {
-        font-size: 3rem;
-      }
-
-      .buttons {
-        flex-direction: column;
-        gap: 15px;
-      }
-
-      button {
-        width: 200px;
-      }
-    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter,sans-serif;background:var(--bg);color:var(--fg);
+         display:flex;flex-direction:column;align-items:center;justify-content:center;
+         height:100vh;text-align:center;padding:20px}
+    h1{font-size:2rem;font-weight:600;margin-bottom:2rem}
+    #timer{font-size:5rem;font-weight:600;letter-spacing:2px;margin-bottom:2.5rem}
+    .btns{display:flex;gap:1.5rem}
+    button{font-size:1.1rem;padding:12px 28px;border:none;border-radius:8px;
+           background:var(--btn);color:#fff;cursor:pointer;transition:.2s}
+    button:hover{background:var(--btnHover)}
+    @media(max-width:500px){#timer{font-size:3rem}.btns{flex-direction:column}}
   </style>
 </head>
 <body>
 
-  <h1>Contagem Regressiva de 1 Hora</h1>
-  <div class="timer" id="timer">01:00:00</div>
+<h1>Contagem Regressiva de 1 Hora</h1>
+<div id="timer">01:00:00</div>
 
-  <div class="buttons">
-    <button onclick="startTimer()">Iniciar</button>
-    <button onclick="stopTimer()">Parar</button>
-  </div>
+<div class="btns">
+  <button onclick="startTimer()">Iniciar</button>
+  <button onclick="stopTimer()">Parar</button>
+</div>
 
-  <script>
-    let duration = 60 * 60; // 1 hora em segundos
-    let remaining = duration;
-    let interval = null;
+<!-- Firebase + Timer Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js";
+  import { getDatabase, ref, set, onValue, serverTimestamp }
+    from "https://www.gstatic.com/firebasejs/11.7.1/firebase-database.js";
 
-    function format(seconds) {
-      const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
-      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
-      const s = String(seconds % 60).padStart(2, '0');
-      return `${h}:${m}:${s}`;
+  // 🔐 Sua config do Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyCs1DHKSksmMhRyT0JWH_rccHyAjxzi4iU",
+    authDomain: "meu-projeto-timer.firebaseapp.com",
+    databaseURL: "https://meu-projeto-timer-default-rtdb.firebaseio.com",
+    projectId: "meu-projeto-timer",
+    storageBucket: "meu-projeto-timer.firebasestorage.app",
+    messagingSenderId: "992142666996",
+    appId: "1:992142666996:web:0a2f17b02510f6758dc2a1"
+  };
+
+  // Inicializa Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const timerRef = ref(db, 'sharedTimer');
+
+  const DURATION = 60 * 60; // 1h
+  let remaining = DURATION;
+  let interval = null;
+  const $timer = document.getElementById('timer');
+
+  const format = s => {
+    const h = String(Math.floor(s / 3600)).padStart(2, '0');
+    const m = String(Math.floor((s % 3600) / 60)).padStart(2, '0');
+    const sec = String(s % 60).padStart(2, '0');
+    return `${h}:${m}:${sec}`;
+  };
+
+  const render = () => $timer.textContent = format(Math.max(0, remaining));
+
+  onValue(timerRef, snap => {
+    const data = snap.val();
+    clearInterval(interval); interval = null;
+
+    if (!data || data.status !== 'running') {
+      remaining = DURATION;
+      render();
+      return;
     }
 
-    function updateDisplay() {
-      document.getElementById("timer").textContent = format(remaining);
-    }
+    const started = data.startEpoch;
+    remaining = DURATION - Math.floor((Date.now() - started) / 1000);
+    render();
 
-    function startTimer() {
-      if (interval) return;
-      interval = setInterval(() => {
-        remaining--;
-        updateDisplay();
-        if (remaining <= 0) {
-          clearInterval(interval);
-          interval = null;
-          alert("⏰ Tempo esgotado!");
-        }
-      }, 1000);
-    }
+    interval = setInterval(() => {
+      remaining--;
+      render();
+      if (remaining <= 0) {
+        stopTimer();
+        alert("⏰ Tempo esgotado!");
+      }
+    }, 1000);
+  });
 
-    function stopTimer() {
-      clearInterval(interval);
-      interval = null;
-      remaining = duration;
-      updateDisplay();
-    }
+  window.startTimer = () => {
+    set(timerRef, { status: 'running', startEpoch: serverTimestamp() });
+  };
 
-    updateDisplay();
-  </script>
+  window.stopTimer = () => {
+    set(timerRef, { status: 'stopped' });
+  };
+
+  render();
+</script>
 
 </body>
 </html>
