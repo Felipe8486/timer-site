@@ -3,32 +3,81 @@
 <head>
   <meta charset="UTF-8">
   <title>Timer Compartilhado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #f8f9fa;
+      --fg: #222;
+      --accent: #007acc;
+      --btn-bg: #222;
+      --btn-fg: #fff;
+      --btn-hover: #444;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #fdfdfd;
-      color: #111;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
       text-align: center;
-      padding: 50px;
     }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 30px;
+    }
+
     .timer {
-      font-size: 64px;
-      font-weight: bold;
-      margin: 30px 0;
+      font-size: 5rem;
+      font-weight: 600;
+      margin-bottom: 40px;
+      letter-spacing: 2px;
     }
+
+    .buttons {
+      display: flex;
+      gap: 20px;
+    }
+
     button {
-      font-size: 20px;
-      padding: 12px 24px;
-      margin: 10px;
+      font-size: 1.1rem;
+      padding: 12px 28px;
       border: none;
       border-radius: 8px;
-      background: #222;
-      color: #fff;
+      background-color: var(--btn-bg);
+      color: var(--btn-fg);
       cursor: pointer;
-      transition: background 0.3s;
+      transition: background 0.2s ease;
     }
+
     button:hover {
-      background: #444;
+      background-color: var(--btn-hover);
+    }
+
+    @media (max-width: 500px) {
+      .timer {
+        font-size: 3rem;
+      }
+
+      .buttons {
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      button {
+        width: 200px;
+      }
     }
   </style>
 </head>
@@ -36,8 +85,11 @@
 
   <h1>Contagem Regressiva de 1 Hora</h1>
   <div class="timer" id="timer">01:00:00</div>
-  <button onclick="startTimer()">Iniciar</button>
-  <button onclick="stopTimer()">Parar</button>
+
+  <div class="buttons">
+    <button onclick="startTimer()">Iniciar</button>
+    <button onclick="stopTimer()">Parar</button>
+  </div>
 
   <script>
     let duration = 60 * 60; // 1 hora em segundos
@@ -63,7 +115,7 @@
         if (remaining <= 0) {
           clearInterval(interval);
           interval = null;
-          alert("Tempo esgotado!");
+          alert("⏰ Tempo esgotado!");
         }
       }, 1000);
     }
@@ -80,4 +132,3 @@
 
 </body>
 </html>
-
